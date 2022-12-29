@@ -1,10 +1,12 @@
 import axios from "axios";
-import { PrismaClient, Product } from "@prisma/client";
+import { Product } from "@prisma/client";
 import { Categories, Category } from "./types";
 import { v4 as uuid } from "uuid";
 import pAll from "p-all";
+import { uniqBy } from "lodash-es";
+import { db } from "../db";
 
-const prisma = new PrismaClient();
+const MERCADONA_API = "https://tienda.mercadona.es/api";
 
 async function main() {
   const products = await fetchAllProducts();
@@ -13,7 +15,7 @@ async function main() {
 }
 
 async function fetchAllProducts() {
-  const categories = await axios.get<Categories>("https://tienda.mercadona.es/api/categories/?lang=es");
+  const categories = await axios.get<Categories>(`${MERCADONA_API}/categories/?lang=es`);
   const allCategories = categories.data.results.map((category) => {
     return () => fetchProducts(category.id);
   });
@@ -24,7 +26,7 @@ async function fetchAllProducts() {
 }
 
 async function fetchProducts(categoryId: number) {
-  const response = await axios.get<Category>(`https://tienda.mercadona.es/api/categories/${categoryId}/?lang=es`);
+  const response = await axios.get<Category>(`${MERCADONA_API}/categories/${categoryId}/?lang=es`);
   const rawProducts = response.data.categories.flatMap((category) => {
     return category.products;
   });
@@ -40,8 +42,8 @@ async function fetchProducts(categoryId: number) {
 }
 
 async function checkNewProducts(products: Product[]) {
-  const allProducts = await prisma.product.findMany();
-  const newProducts = products
+  const allProducts = await db.product.findMany();
+  const newProducts = uniqBy(products, "companyId")
     .filter((product) => {
       return !allProducts.find((dbProduct) => dbProduct.companyId === product.companyId);
     })
@@ -51,8 +53,8 @@ async function checkNewProducts(products: Product[]) {
         id: uuid(),
       };
     });
-  await prisma.product.createMany({ data: newProducts });
-  await prisma.history.createMany({
+  await db.product.createMany({ data: newProducts });
+  await db.history.createMany({
     data: newProducts.map((product) => {
       return {
         productId: product.id,
@@ -66,7 +68,7 @@ async function checkNewProducts(products: Product[]) {
 }
 
 async function checkPrices(products: Product[]) {
-  const allProducts = await prisma.product.findMany();
+  const allProducts = await db.product.findMany();
   const productsToUpdate = products
     .filter((product) => {
       const dbProduct = allProducts.find((dbProduct) => dbProduct.companyId === product.companyId);
@@ -88,9 +90,9 @@ async function checkPrices(products: Product[]) {
       };
     });
   console.log(`Found ${productsToUpdate.length} products to update.`);
-  await prisma.$transaction(
+  await db.$transaction(
     productsToUpdate.map((product) => {
-      return prisma.product.update({
+      return db.product.update({
         where: { id: product.id },
         data: {
           price: product.price,
@@ -100,7 +102,7 @@ async function checkPrices(products: Product[]) {
       });
     })
   );
-  await prisma.history.createMany({
+  await db.history.createMany({
     data: productsToUpdate.map((product) => {
       return {
         productId: product.id,
@@ -114,10 +116,10 @@ async function checkPrices(products: Product[]) {
 
 main()
   .then(async () => {
-    await prisma.$disconnect();
+    await db.$disconnect();
   })
   .catch(async (e) => {
     console.error(e);
-    await prisma.$disconnect();
+    await db.$disconnect();
     process.exit(1);
   });
