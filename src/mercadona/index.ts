@@ -1,10 +1,10 @@
 import axios from "axios";
 import { Product } from "@prisma/client";
-import { Categories, Category } from "./types";
+import { Categories, Category } from "./types.js";
 import { v4 as uuid } from "uuid";
 import pAll from "p-all";
 import { uniqBy } from "lodash-es";
-import { db } from "../db";
+import { db } from "../db.js";
 
 const MERCADONA_API = "https://tienda.mercadona.es/api";
 
@@ -114,12 +114,13 @@ async function checkPrices(products: Product[]) {
   });
 }
 
-main()
-  .then(async () => {
-    await db.$disconnect();
-  })
-  .catch(async (e) => {
-    console.error(e);
-    await db.$disconnect();
-    process.exit(1);
-  });
+export const mercadona = () =>
+  main()
+    .then(async () => {
+      await db.$disconnect();
+    })
+    .catch(async (e) => {
+      console.error(e);
+      await db.$disconnect();
+      process.exit(1);
+    });
