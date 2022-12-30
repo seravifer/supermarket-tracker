@@ -1,12 +1,12 @@
 import axios from "axios";
-import { Categories, Category } from "./types.js";
+import { Products } from "./types.js";
 import { v4 as uuid } from "uuid";
-import pAll from "p-all";
 import { uniqBy } from "lodash-es";
 import { db } from "../db.js";
 import { NewProduct } from "../type.js";
+import pAll from "p-all";
 
-const MERCADONA_API = "https://tienda.mercadona.es/api";
+const CONSUM_API = "https://tienda.consum.es/api/rest/V1.0";
 
 async function main() {
   const products = await fetchAllProducts();
@@ -15,35 +15,38 @@ async function main() {
 }
 
 async function fetchAllProducts(): Promise<NewProduct[]> {
-  const categories = await axios.get<Categories>(`${MERCADONA_API}/categories/?lang=es`);
-  const allCategories = categories.data.results.map((category) => {
-    return () => fetchProducts(category.id);
+  const { data } = await axios.get<Products>(
+    `${CONSUM_API}/catalog/product?limit=100&offset=0&showRecommendations=false`
+  );
+  const totalProducts = data.totalCount;
+  const offsets = Array.from(Array(Math.ceil(totalProducts / 100)).keys());
+  const allProducts = offsets.map((offset) => {
+    return () => fetchProducts(offset * 100);
   });
-  const result = await pAll(allCategories, { concurrency: 6 });
-  const products = result.flat();
+  const result = await pAll(allProducts, { concurrency: 10 });
+  const products = result.flat() as NewProduct[];
   console.log(`Fetch ${products.length} products.`);
   return products;
 }
 
-async function fetchProducts(categoryId: number): Promise<NewProduct[]> {
-  const response = await axios.get<Category>(`${MERCADONA_API}/categories/${categoryId}/?lang=es`);
-  const rawProducts = response.data.categories.flatMap((category) => {
-    return category.products;
-  });
-  return rawProducts.map((product) => {
+async function fetchProducts(offset: number): Promise<NewProduct[]> {
+  const { data } = await axios.get<Products>(
+    `${CONSUM_API}/catalog/product?limit=100&offset=${offset}&showRecommendations=false`
+  );
+  return data.products.map((product) => {
     return {
-      companyId: product.id,
-      company: "mercadona",
-      name: product.display_name,
-      bulkPrice: parseFloat(product.price_instructions.bulk_price),
-      price: parseFloat(product.price_instructions.unit_price),
-      iva: product.price_instructions.iva,
+      companyId: String(product.id),
+      company: "consum",
+      name: product.productData.brand.name + " " + product.productData.name,
+      bulkPrice: product.priceData.prices[0].value.centAmount,
+      price: product.priceData.prices[0].value.centUnitAmount,
+      iva: product.priceData.taxPercentage,
     };
   });
 }
 
 async function checkNewProducts(products: NewProduct[]): Promise<void> {
-  const allProducts = await db.product.findMany({ where: { company: "mercadona" } });
+  const allProducts = await db.product.findMany({ where: { company: "consum" } });
   const newProducts = uniqBy(products, "companyId")
     .filter((product) => {
       return !allProducts.find((dbProduct) => dbProduct.companyId === product.companyId);
@@ -69,7 +72,7 @@ async function checkNewProducts(products: NewProduct[]): Promise<void> {
 }
 
 async function checkPrices(products: NewProduct[]): Promise<void> {
-  const allProducts = await db.product.findMany({ where: { company: "mercadona" } });
+  const allProducts = await db.product.findMany({ where: { company: "consum" } });
   const productsToUpdate = products
     .filter((product) => {
       const dbProduct = allProducts.find((dbProduct) => dbProduct.companyId === product.companyId);
@@ -109,7 +112,8 @@ async function checkPrices(products: NewProduct[]): Promise<void> {
     }),
   });
 }
-export const mercadona = () =>
+
+export const consum = () =>
   main()
     .then(async () => {
       await db.$disconnect();

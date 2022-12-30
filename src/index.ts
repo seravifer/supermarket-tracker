@@ -1,11 +1,24 @@
+import "firebase-functions/logger/compat";
 import * as functions from "firebase-functions";
+import { consum } from "./consum/index.js";
 import { mercadona } from "./mercadona/index.js";
 
-export const scheduledFunction = functions
+export const mercadonaBot = functions
   .region("europe-west1")
   .runWith({
+    secrets: ["DATABASE_URL"],
     memory: "512MB",
   })
   .pubsub.schedule("0 0 * * *")
   .timeZone("Europe/Madrid")
   .onRun(() => mercadona());
+
+export const consumBot = functions
+  .region("europe-west1")
+  .runWith({
+    secrets: ["DATABASE_URL"],
+    memory: "512MB",
+  })
+  .pubsub.schedule("0 0 * * *")
+  .timeZone("Europe/Madrid")
+  .onRun(() => consum());

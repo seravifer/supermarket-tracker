@@ -5,7 +5,7 @@
   "main": "build/index.js",
   "type": "module",
   "scripts": {
-    "start": "ts-node-esm src/mercadona/index.ts",
+    "start": "ts-node-esm src/test.ts",
     "lint": "eslint --ext .js,.ts .",
     "build": "tsc",
     "serve": "npm run build && firebase emulators:start --only functions",
@@ -13,17 +13,6 @@
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/seravifer/marketTracker.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/seravifer/marketTracker/issues"
-  },
-  "homepage": "https://github.com/seravifer/marketTracker#readme",
   "volta": {
     "node": "18.12.1"
   },
