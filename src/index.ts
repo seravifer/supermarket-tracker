@@ -10,7 +10,7 @@ export const mercadonaBot = functions
     secrets: ["DATABASE_URL"],
     memory: "512MB",
   })
-  .pubsub.schedule("0 0 * * *")
+  .pubsub.schedule("0 0/12 * * *")
   .timeZone("Europe/Madrid")
   .onRun(() => mercadona());
 
@@ -20,7 +20,7 @@ export const consumBot = functions
     secrets: ["DATABASE_URL"],
     memory: "512MB",
   })
-  .pubsub.schedule("0 0 * * *")
+  .pubsub.schedule("0 0/12 * * *")
   .timeZone("Europe/Madrid")
   .onRun(() => consum());
 
@@ -30,6 +30,6 @@ export const carrefourBot = functions
     secrets: ["DATABASE_URL"],
     memory: "512MB",
   })
-  .pubsub.schedule("0 0 * * *")
+  .pubsub.schedule("0 0/12 * * *")
   .timeZone("Europe/Madrid")
   .onRun(() => carrefour());
