@@ -1,4 +1,4 @@
-import axios from "axios";
+import { http } from "../http.js";
 import { Products } from "./types.js";
 import { NewProduct } from "../type.js";
 import pAll from "p-all";
@@ -14,7 +14,7 @@ export async function consum() {
 }
 
 async function fetchAllProducts(): Promise<NewProduct[]> {
-  const { data } = await axios.get<Products>(`${API}/catalog/product?limit=100&offset=0&showRecommendations=false`);
+  const { data } = await http.get<Products>(`${API}/catalog/product?limit=100&offset=0&showRecommendations=false`);
   const totalProducts = data.totalCount;
   const offsets = Array.from(Array(Math.ceil(totalProducts / 100)).keys());
   const allProducts = offsets.map((offset) => {
@@ -27,7 +27,7 @@ async function fetchAllProducts(): Promise<NewProduct[]> {
 }
 
 async function fetchProducts(offset: number): Promise<NewProduct[]> {
-  const { data } = await axios.get<Products>(
+  const { data } = await http.get<Products>(
     `${API}/catalog/product?limit=100&offset=${offset}&showRecommendations=false`
   );
   return data.products.map((product) => {

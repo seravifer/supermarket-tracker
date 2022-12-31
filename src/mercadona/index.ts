@@ -1,4 +1,4 @@
-import axios from "axios";
+import { http } from "../http.js";
 import { Categories, Category } from "./types.js";
 import pAll from "p-all";
 import { NewProduct } from "../type.js";
@@ -14,19 +14,19 @@ export async function mercadona() {
 }
 
 async function fetchAllProducts(): Promise<NewProduct[]> {
-  const categories = await axios.get<Categories>(`${API}/categories/?lang=es`);
-  const allCategories = categories.data.results.map((category) => {
+  const { data } = await http.get<Categories>(`${API}/categories/?lang=es`);
+  const categories = data.results.map((category) => {
     return () => fetchProducts(category.id);
   });
-  const result = await pAll(allCategories, { concurrency: 6 });
+  const result = await pAll(categories, { concurrency: 6 });
   const products = result.flat();
   console.log(`Fetch ${products.length} products.`);
   return products;
 }
 
 async function fetchProducts(categoryId: number): Promise<NewProduct[]> {
-  const response = await axios.get<Category>(`${API}/categories/${categoryId}/?lang=es`);
-  const rawProducts = response.data.categories.flatMap((category) => {
+  const { data } = await http.get<Category>(`${API}/categories/${categoryId}/?lang=es`);
+  const rawProducts = data.categories.flatMap((category) => {
     return category.products;
   });
   return rawProducts.map((product) => {

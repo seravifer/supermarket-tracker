@@ -1,9 +1,8 @@
-import axios from "axios";
 import { Category } from "./types.js";
 import pAll from "p-all";
-import { db } from "../db.js";
 import { NewProduct } from "../type.js";
 import { checkNewProducts, checkPrices } from "../common.js";
+import { http } from "../http.js";
 
 const API = "https://www.carrefour.es/cloud-api/plp-food-papi/v1";
 const COMPANY = "carrefour";
@@ -38,7 +37,7 @@ async function fetchAllProducts(): Promise<NewProduct[]> {
 }
 
 async function fetchCategories(categoryId: string): Promise<NewProduct[]> {
-  const { data } = await axios.get<Category>(`${API}${categoryId}/c`);
+  const { data } = await http.get<Category>(`${API}${categoryId}/c`);
   const allProducts = data.child_links.items
     .filter((item) => {
       return item.id !== "catofertas";
@@ -53,7 +52,7 @@ async function fetchCategories(categoryId: string): Promise<NewProduct[]> {
 }
 
 async function fetchCategory(categoryId: string): Promise<NewProduct[]> {
-  const { data } = await axios.get<Category>(`${API}${categoryId}`);
+  const { data } = await http.get<Category>(`${API}${categoryId}`);
   const totalProducts = data.results.pagination.total_results;
   const offsets = Array.from(Array(Math.ceil(totalProducts / 24)).keys());
   const allProducts = offsets.map((offset) => {
@@ -66,7 +65,7 @@ async function fetchCategory(categoryId: string): Promise<NewProduct[]> {
 }
 
 async function fetchProducts(categoryId: string, offset: number): Promise<NewProduct[]> {
-  const { data } = await axios.get<Category>(`${API}${categoryId}?offset=${offset}`);
+  const { data } = await http.get<Category>(`${API}${categoryId}?offset=${offset}`);
   if (!data.results) {
     return [];
   }
