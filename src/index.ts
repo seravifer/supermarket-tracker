@@ -3,6 +3,7 @@ import * as functions from "firebase-functions";
 import { consum } from "./consum/index.js";
 import { mercadona } from "./mercadona/index.js";
 import { carrefour } from "./carrefour/index.js";
+import { article as articleFunction } from "./api/index.js";
 
 export const mercadonaBot = functions
   .region("europe-west1")
@@ -33,3 +34,5 @@ export const carrefourBot = functions
   .pubsub.schedule("0 0/12 * * *")
   .timeZone("Europe/Madrid")
   .onRun(() => carrefour());
+
+export const article = articleFunction;

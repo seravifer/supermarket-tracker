@@ -1,9 +1,9 @@
 import { v4 as uuid } from "uuid";
-import { uniqBy } from "lodash-es";
+import { chunk, uniqBy } from "lodash-es";
 import { db } from "./db.js";
-import { NewProduct } from "./type.js";
+import { FetchProduct } from "./type.js";
 
-export async function checkNewProducts(company: string, products: NewProduct[]): Promise<void> {
+export async function checkNewProducts(company: string, products: FetchProduct[]): Promise<void> {
   const allProducts = await db.product.findMany({ where: { company } });
   const newProducts = uniqBy(products, "companyId")
     .filter((product) => {
@@ -23,13 +23,14 @@ export async function checkNewProducts(company: string, products: NewProduct[]):
         price: product.price,
         bulkPrice: product.bulkPrice,
         iva: product.iva,
+        raw: product.raw,
       };
     }),
   });
   console.log(`Added ${newProducts.length} new products.`);
 }
 
-export async function checkPrices(company: string, products: NewProduct[]): Promise<void> {
+export async function checkPrices(company: string, products: FetchProduct[]): Promise<void> {
   const allProducts = await db.product.findMany({ where: { company } });
   const productsToUpdate = products
     .filter((product) => {
@@ -47,26 +48,33 @@ export async function checkPrices(company: string, products: NewProduct[]): Prom
       };
     });
   console.log(`Found ${productsToUpdate.length} products to update.`);
-  await db.$transaction(
-    productsToUpdate.map((product) => {
-      return db.product.update({
-        where: { id: product.id },
-        data: {
-          price: product.price,
-          bulkPrice: product.bulkPrice,
-          iva: product.iva,
-        },
-      });
-    })
-  );
-  await db.history.createMany({
-    data: productsToUpdate.map((product) => {
-      return {
-        productId: product.id,
-        price: product.price,
-        bulkPrice: product.bulkPrice,
-        iva: product.iva,
-      };
-    }),
-  });
+  const chunks = chunk(productsToUpdate, 500);
+  for (const chunk of chunks) {
+    await db.$transaction([
+      ...chunk.map((product) => {
+        return db.product.update({
+          where: { id: product.id },
+          data: {
+            price: product.price,
+            bulkPrice: product.bulkPrice,
+            iva: product.iva,
+            raw: product.raw,
+          },
+        });
+      }),
+      db.history.createMany({
+        data: chunk.map((product) => {
+          return {
+            productId: product.id,
+            price: product.price,
+            bulkPrice: product.bulkPrice,
+            iva: product.iva,
+            raw: product.raw,
+          };
+        }),
+      }),
+    ]);
+    console.log(`Updated chunk ${chunk.length} products.`);
+  }
+  console.log(`Updated ${productsToUpdate.length} products.`);
 }

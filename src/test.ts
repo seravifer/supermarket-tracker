@@ -4,6 +4,6 @@ import { mercadona } from "./mercadona/index.js";
 
 (async function main() {
   // await consum();
-  // await mercadona();
-  await carrefour();
+  await mercadona();
+  // await carrefour();
 })();

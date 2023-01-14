@@ -1,6 +1,6 @@
 import { Category } from "./types.js";
 import pAll from "p-all";
-import { NewProduct } from "../type.js";
+import { FetchProduct } from "../type.js";
 import { checkNewProducts, checkPrices } from "../common.js";
 import { http } from "../http.js";
 
@@ -19,12 +19,13 @@ const CATEGORIES = [
 ];
 
 export async function carrefour() {
+  console.log("Start carrefour bot");
   const products = await fetchAllProducts();
   await checkNewProducts(COMPANY, products);
   await checkPrices(COMPANY, products);
 }
 
-async function fetchAllProducts(): Promise<NewProduct[]> {
+async function fetchAllProducts(): Promise<FetchProduct[]> {
   const allProducts = await pAll(
     CATEGORIES.map((category) => {
       return () => fetchCategories(category);
@@ -36,7 +37,7 @@ async function fetchAllProducts(): Promise<NewProduct[]> {
   return products;
 }
 
-async function fetchCategories(categoryId: string): Promise<NewProduct[]> {
+async function fetchCategories(categoryId: string): Promise<FetchProduct[]> {
   const { data } = await http.get<Category>(`${API}${categoryId}/c`);
   const allProducts = data.child_links.items
     .filter((item) => {
@@ -51,7 +52,7 @@ async function fetchCategories(categoryId: string): Promise<NewProduct[]> {
   return products;
 }
 
-async function fetchCategory(categoryId: string): Promise<NewProduct[]> {
+async function fetchCategory(categoryId: string): Promise<FetchProduct[]> {
   const { data } = await http.get<Category>(`${API}${categoryId}`);
   const totalProducts = data.results.pagination.total_results;
   const offsets = Array.from(Array(Math.ceil(totalProducts / 24)).keys());
@@ -64,7 +65,7 @@ async function fetchCategory(categoryId: string): Promise<NewProduct[]> {
   return products;
 }
 
-async function fetchProducts(categoryId: string, offset: number): Promise<NewProduct[]> {
+async function fetchProducts(categoryId: string, offset: number): Promise<FetchProduct[]> {
   const { data } = await http.get<Category>(`${API}${categoryId}?offset=${offset}`);
   if (!data.results) {
     return [];
@@ -82,6 +83,7 @@ async function fetchProducts(categoryId: string, offset: number): Promise<NewPro
         bulkPrice: parseFloat(product.price_per_unit.replace(" €", "")),
         price: parseFloat(product.price.replace(" €", "")),
         iva: 0,
+        raw: product as any,
       };
     });
 }

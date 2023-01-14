@@ -1,3 +1,5 @@
 import { Product } from "@prisma/client";
 
-export type NewProduct = Omit<Product, "id" | "createdAt" | "updatedAt">;
+export type FetchProduct = Omit<Product, "id" | "createdAt" | "updatedAt"> & {
+  raw: any | null;
+};

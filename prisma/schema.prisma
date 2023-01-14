@@ -19,6 +19,7 @@ model Product {
   price     Float
   bulkPrice Float
   iva       Int
+  raw       Json?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   histories History[]
@@ -30,6 +31,7 @@ model History {
   price     Float
   bulkPrice Float
   iva       Int
+  raw       Json?
   timestamp DateTime @default(now())
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
