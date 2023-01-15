@@ -9,6 +9,7 @@ export const mercadonaBot = functions
   .region("europe-west1")
   .runWith({
     secrets: ["DATABASE_URL"],
+    timeoutSeconds: 540,
     memory: "512MB",
   })
   .pubsub.schedule("0 0/12 * * *")
@@ -19,6 +20,7 @@ export const consumBot = functions
   .region("europe-west1")
   .runWith({
     secrets: ["DATABASE_URL"],
+    timeoutSeconds: 540,
     memory: "512MB",
   })
   .pubsub.schedule("0 0/12 * * *")
@@ -29,6 +31,7 @@ export const carrefourBot = functions
   .region("europe-west1")
   .runWith({
     secrets: ["DATABASE_URL"],
+    timeoutSeconds: 540,
     memory: "512MB",
   })
   .pubsub.schedule("0 0/12 * * *")

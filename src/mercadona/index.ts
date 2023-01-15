@@ -31,7 +31,7 @@ async function fetchAllProducts(): Promise<FetchProduct[]> {
 }
 
 async function fetchProducts(categoryId: number): Promise<FetchProduct[]> {
-  await wait(200);
+  await wait(500);
   const { data } = await http.get<Category>(`${API}/categories/${categoryId}/?lang=es`, {
     headers: { "User-Agent": randUserAgent("desktop") },
   });
