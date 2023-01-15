@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "MarketTracker",
+  "version": "0.1",
+  "description": "",
+  "content_scripts": [
+    {
+      "js": [
+        "chart.min.js",
+        "script.js"
+      ],
+      "run_at": "document_end",
+      "matches": [
+        "https://tienda.mercadona.es/*"
+      ]
+    }
+  ]
+}
