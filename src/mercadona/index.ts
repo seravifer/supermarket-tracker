@@ -2,7 +2,6 @@ import { http } from "../http.js";
 import { Categories, Category } from "./types.js";
 import pSeries from "p-series";
 import { FetchProduct } from "../type.js";
-import randUserAgent from "rand-user-agent";
 import { checkNewProducts, checkPrices } from "../common.js";
 
 const API = "https://tienda.mercadona.es/api";
@@ -31,13 +30,20 @@ async function fetchAllProducts(): Promise<FetchProduct[]> {
 }
 
 async function fetchProducts(categoryId: number): Promise<FetchProduct[]> {
-  await wait(500);
   const { data } = await http.get<Category>(`${API}/categories/${categoryId}/?lang=es`, {
-    headers: { "User-Agent": randUserAgent("desktop") },
+    headers: {
+      "User-Agent": "PostmanRuntime/7.30.0",
+      Connection: "keep-alive",
+      "Cache-Control": "no-cache",
+      Accept: "*/*",
+      "Accept-Encoding": "gzip, deflate, br",
+      Host: "tienda.mercadona.es",
+    },
   });
   const rawProducts = data.categories.flatMap((category) => {
     return category.products;
   });
+  console.log(`Fetch ${rawProducts.length} products from category ${categoryId}.`);
   return rawProducts.map((product) => {
     return {
       companyId: product.id,

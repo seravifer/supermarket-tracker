@@ -12,7 +12,7 @@ export const mercadonaBot = functions
     timeoutSeconds: 540,
     memory: "512MB",
   })
-  .pubsub.schedule("0 0/12 * * *")
+  .pubsub.schedule("0 */6 * * *")
   .timeZone("Europe/Madrid")
   .onRun(() => mercadona());
 
