@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "MarketTracker",
+  "name": "supermarket-tracker",
   "version": "0.1",
   "description": "",
   "content_scripts": [
