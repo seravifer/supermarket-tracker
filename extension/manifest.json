@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "supermarket-tracker",
+  "name": "Rastreador de supermercados",
   "version": "0.1.0",
-  "description": "",
+  "description": "Histórico de precios de productos de supermercados Españoles",
   "content_scripts": [
     {
       "js": [
