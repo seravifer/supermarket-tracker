@@ -28,7 +28,6 @@ let previousUrl = "";
 function onURLChange(callback) {
   let observerUrl = new MutationObserver(() => {
     if (location.href !== previousUrl) {
-      console.log("URL changed", location.href);
       previousUrl = location.href;
       callback();
     }
@@ -43,7 +42,6 @@ onURLChange(() => {
 function checkPrice() {
   waitForElm("[data-test='private-product-detail-info']").then(async (elm) => {
     const productId = location.href.split("/")[4];
-
     const response = await fetch(
       `https://us-central1-markettracker-85aa0.cloudfunctions.net/article?id=${productId}&company=mercadona`,
       {

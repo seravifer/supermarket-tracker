@@ -1,6 +1,6 @@
 # SupermarketTracker - Histórico de precios de supermercados Españoles
 
-![Captura de pantalla](.github/sceenshot.jpg?raw=true "Captura de pantalla")
+![Captura de pantalla](assets/sceenshot.jpg)
 
 ## ¿Qué es SupermarketTracker?
 
